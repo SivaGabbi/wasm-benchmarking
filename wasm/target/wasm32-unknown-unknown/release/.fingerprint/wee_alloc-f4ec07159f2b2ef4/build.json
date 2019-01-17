@@ -1,0 +1,1 @@
+{"rustc":0,"features":"","target":0,"profile":0,"path":0,"deps":[],"local":[{"MtimeBased":[[1547717386,557317827],"/Users/sivagabbi/EWF/wasm_benchmarking/test/wasm/target/wasm32-unknown-unknown/release/build/wee_alloc-f4ec07159f2b2ef4/output"]},{"EnvBased":["WEE_ALLOC_STATIC_ARRAY_BACKEND_BYTES",null]}],"rustflags":[],"edition":"Edition2015"}

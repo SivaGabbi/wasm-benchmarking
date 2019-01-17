@@ -1,0 +1,1 @@
+{"rustc":9634627423267585492,"features":"[]","target":13124829426466301567,"profile":3039565332415304816,"path":11109405647898338859,"deps":[["cfg-if v0.1.5","cfg_if",13122175453690147913],["rlibc v1.0.0","rlibc",15718850650676839881]],"local":[{"Precalculated":"0.2.0"}],"rustflags":["-C","link-args=-z stack-size=65536"],"edition":"Edition2015"}
