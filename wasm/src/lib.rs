@@ -13,23 +13,46 @@ pub mod token {
     use pwasm_abi::types::*;
 
     // eth_abi is a procedural macros https://doc.rust-lang.org/book/first-edition/procedural-macros.html
-    use pwasm_abi_derive::eth_abi;
+    // #[eth_abi(Endpoint2, Client2)]
+    /// trait Contract2 { }
+    /// ```
+    ///
+    /// Creates an endpoint implementation named `Endpoint2` and a
+    /// client implementation named `Client2` for the interface
+    /// defined in the `Contract2` trait.
+    // #[proc_macro_attribute]
+    // pub fn eth_abi(
+    //    args: proc_macro::TokenStream, --> these here must be endpoint2 and client2 mentioned above 
+    //    input: proc_macro::TokenStream, --> this must be the contract 2 trait above which eth_abi is mentioned 
+    // ) -> proc_macro::TokenStream {
+    //     let args_toks = parse_macro_input!(args as syn::AttributeArgs);
+    //     let input_toks = parse_macro_input!(input as syn::Item);
 
-    static TOTAL_SUPPLY_KEY: H256 = H256([2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+    //     let output = match impl_eth_abi(args_toks, input_toks) { --> impl_eth_abi is another function in the code which is executed.. 
+    //         Ok(output) => output,
+    //         Err(err) => panic!("[eth_abi] encountered error: {}", err),
+    //     };
+
+    //     output.into()
+    // }
+    use pwasm_abi_derive::eth_abi;
+    // https://github.com/paritytech/pwasm-abi/blob/master/derive/src/lib.rs
+
+    static TOTAL_SUPPLY_KEY: H32 = H32([2]);
     static OWNER_KEY: H256 = H256([3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
 
     #[eth_abi(TokenEndpoint, TokenClient)]
     pub trait TokenInterface {
         /// The constructor
-        fn constructor(&mut self, _total_supply: U256);
+        fn constructor(&mut self, _total_supply: H32);
         /// Total amount of tokens
         #[constant]
-        fn totalSupply(&mut self) -> U256;
+        fn totalSupply(&mut self) -> H32;
         /// What is the balance of a particular account?
         #[constant]
-        fn balanceOf(&mut self, _owner: Address) -> U256;
+        fn balanceOf(&mut self, _owner: Address) -> H32;
         /// Transfer the balance from owner's account to another account
-        fn transfer(&mut self, _to: Address, _amount: U256) -> bool;
+        fn transfer(&mut self, _to: Address, _amount: H32) -> bool;
         /// Event declaration
         #[event]
         fn Transfer(&mut self, indexed_from: Address, indexed_to: Address, _value: U256);
@@ -102,45 +125,3 @@ pub fn deploy() {
     endpoint.dispatch_ctor(&pwasm_ethereum::input());
 }
 
-#[cfg(test)]
-#[allow(non_snake_case)]
-mod tests {
-    extern crate pwasm_test;
-    extern crate std;
-    use super::*;
-    use pwasm_abi::types::*;
-    use self::pwasm_test::{ext_reset, ext_get};
-    use token::TokenInterface;
-
-    #[test]
-    fn should_succeed_transfering_1000_from_owner_to_another_address() {
-        let mut contract = token::TokenContract{};
-        let owner_address = Address::from("0xea674fdde714fd979de3edf0f56aa9716b898ec8");
-        let sam_address = Address::from("0xdb6fd484cfa46eeeb73c71edee823e4812f9e2e1");
-        // Here we're creating an External context using ExternalBuilder and set the `sender` to the `owner_address`
-        // so `pwasm_ethereum::sender()` in TokenInterface::constructor() will return that `owner_address`
-        ext_reset(|e| e.sender(owner_address.clone()));
-        let total_supply = 10000.into();
-        contract.constructor(total_supply);
-        assert_eq!(contract.balanceOf(owner_address), total_supply);
-        assert_eq!(contract.transfer(sam_address, 1000.into()), true);
-        assert_eq!(contract.balanceOf(owner_address), 9000.into());
-        assert_eq!(contract.balanceOf(sam_address), 1000.into());
-        // 1 log entry should be created
-        assert_eq!(ext_get().logs().len(), 1);
-    }
-
-    #[test]
-    fn should_not_transfer_to_self() {
-        let mut contract = token::TokenContract{};
-        let owner_address = Address::from("0xea674fdde714fd979de3edf0f56aa9716b898ec8");
-        ext_reset(|e| e.sender(owner_address.clone()));
-        let total_supply = 10000.into();
-        contract.constructor(total_supply);
-        assert_eq!(contract.balanceOf(owner_address), total_supply);
-        assert_eq!(contract.transfer(owner_address, 1000.into()), false);
-        assert_eq!(contract.balanceOf(owner_address), 10000.into());
-        assert_eq!(ext_get().logs().len(), 0);
-    }
-
-}
